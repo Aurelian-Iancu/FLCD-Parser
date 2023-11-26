@@ -29,6 +29,7 @@ private:
 
 	vector<string> parseTerminalsAndNonTerminals(string input);
 	pair<string, vector<string>> parseProduction(string production);
+	
 
 public:
 	Grammar(string file);
@@ -36,4 +37,5 @@ public:
 	void displayNonTerminals();
 	void displayProductions();
 	void displayProduction(string nonterminal);
+	bool checkCFG();
 };

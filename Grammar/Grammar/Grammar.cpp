@@ -45,7 +45,7 @@ pair<string, vector<string>> Grammar::parseProduction(string production)
 	string nonTerminal = production.substr(0, production.find('='));
 	trim(nonTerminal);
 	if (this->nonterminals.find(nonTerminal) == this->nonterminals.end())
-		throw invalid_argument("Grammar is not CFG or non-terminal does not exist.\n");
+		throw invalid_argument("Non-terminal does not exist.\n");
 
 	production = production.substr(production.find('=') + 1);
 	trim(production);
@@ -61,6 +61,21 @@ pair<string, vector<string>> Grammar::parseProduction(string production)
 	}
 
 	return { nonTerminal, tokens };
+}
+
+bool Grammar::checkCFG() {
+	bool ok = true;
+	for (const auto& production : this->productions) {
+		const string& nonterminal = production.first;
+		const vector<string>& productionRules = production.second;
+
+		// Check if the nonterminal exists
+		if (this->nonterminals.find(nonterminal) == this->nonterminals.end()) {
+			ok = false;
+		}
+	}
+
+	return ok;
 }
 
 Grammar::Grammar(string file)
@@ -85,6 +100,7 @@ Grammar::Grammar(string file)
 
 void Grammar::displayTerminals()
 {
+	cout << "Terminals: ";
 	for (string terminal : this->terminals)
 	{
 		cout << terminal << " ";
@@ -95,6 +111,7 @@ void Grammar::displayTerminals()
 
 void Grammar::displayNonTerminals()
 {
+	cout << "Nonterminals: ";
 	for (string nonterminal : this->nonterminals)
 	{
 		cout << nonterminal << " ";
@@ -105,6 +122,7 @@ void Grammar::displayNonTerminals()
 
 void Grammar::displayProductions()
 {
+	cout << "Productions:\n";
 	for (auto it = this->productions.begin(); it != this->productions.end(); ++it)
 	{
 		cout << it->first << " = ";
@@ -121,6 +139,7 @@ void Grammar::displayProductions()
 
 void  Grammar::displayProduction(string nonterminal)
 {
+	cout << "Productions:\n";
 	auto it = this->productions.find(nonterminal);
 
 	if (it != this->productions.end()) {
