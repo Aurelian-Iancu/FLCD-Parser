@@ -1,6 +1,7 @@
 S A B
 a b
-S
+SS
+SS = S
 S = a A
 A = a A | b B | b
 B = b B | b

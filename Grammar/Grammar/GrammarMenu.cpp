@@ -48,7 +48,7 @@ void handleInput() {
             cin >> nonterminal;
             g.displayProduction(nonterminal);
             break;
-        case 5:
+        /*case 5:
             if (g.checkCFG())
             {
                 cout << "The grammar is a CFG\n";
@@ -56,7 +56,7 @@ void handleInput() {
             else {
                 cout << "The grammar is not a CFG\n";
             }
-            break;
+            break;*/
         case 0:
             cout << "Exiting...\n";
             break;

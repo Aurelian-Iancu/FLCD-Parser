@@ -88,9 +88,23 @@ void Parser::createCanonicalCollection()
             if (find(this->cannonicalCollection.begin(), this->cannonicalCollection.end(), newState)
                 == this->cannonicalCollection.end())
                 this->cannonicalCollection.push_back(newState);
+
+            this->connections.push_back(Connection(state, newState, atom));
         }
         ++index;
     }
+}
+
+vector<Connection> Parser::getConnectionsOfState(State state)
+{
+    vector<Connection> connectionsOfState;
+
+    for (Connection connection : this->connections) {
+        if (connection.getStartingState() == state) {
+            connectionsOfState.push_back(connection);
+        }
+    }
+    return connectionsOfState;
 }
 
 string Parser::toString()
