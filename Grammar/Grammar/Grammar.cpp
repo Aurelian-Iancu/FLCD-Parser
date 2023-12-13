@@ -13,14 +13,14 @@
 static inline void ltrim(string& s) {
 	s.erase(s.begin(), find_if(s.begin(), s.end(), [](unsigned char ch) {
 		return !isspace(ch);
-		}));
+	}));
 }
 
 // trim from end (in place)
 static inline void rtrim(string& s) {
 	s.erase(find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
 		return !isspace(ch);
-		}).base(), s.end());
+	}).base(), s.end());
 }
 
 // trim from both ends (in place)
@@ -29,7 +29,7 @@ static inline void trim(string& s) {
 	ltrim(s);
 }
 
-vector<string> Grammar::parseTerminalsAndNonTerminals(string input)
+vector<string> Grammar::parseTerminalsAndNonTerminals(string input) 
 {
 	stringstream ss(input);
 	vector<string> tokens;
@@ -40,42 +40,29 @@ vector<string> Grammar::parseTerminalsAndNonTerminals(string input)
 	return tokens;
 }
 
-pair<string, vector<string>> Grammar::parseProduction(string production)
+pair<string, vector<vector<string>>> Grammar::parseProduction(string production) 
 {
 	string nonTerminal = production.substr(0, production.find('='));
 	trim(nonTerminal);
 	if (this->nonterminals.find(nonTerminal) == this->nonterminals.end())
-		throw invalid_argument("Non-terminal does not exist.\n");
+		throw invalid_argument("Grammar is not CFG or non-terminal does not exist.\n");
 
 	production = production.substr(production.find('=') + 1);
 	trim(production);
 
-	vector<string> tokens;
+	vector<vector<string>> productions;
 	stringstream ss(production);
-	string token;
+	string prod;
 
-	while (getline(ss, token, '|'))
+	while (getline(ss, prod, '|'))
 	{
-		trim(token);
-		tokens.push_back(token);
+		trim(prod);
+		vector<string> atoms = this->parseTerminalsAndNonTerminals(prod);
+		// TODO: check atoms to be either a non or a terminal
+		productions.push_back(atoms);
 	}
 
-	return { nonTerminal, tokens };
-}
-
-bool Grammar::checkCFG() {
-	bool ok = true;
-	for (const auto& production : this->productions) {
-		const string& nonterminal = production.first;
-		const vector<string>& productionRules = production.second;
-
-		// Check if the nonterminal exists
-		if (this->nonterminals.find(nonterminal) == this->nonterminals.end()) {
-			ok = false;
-		}
-	}
-
-	return ok;
+	return { nonTerminal, productions };
 }
 
 Grammar::Grammar(string file)
@@ -95,12 +82,15 @@ Grammar::Grammar(string file)
 
 	string production;
 	while (getline(f, production, '\n'))
-		this->productions.insert(this->parseProduction(production));
+	{
+		auto p = this->parseProduction(production);
+		for (auto value : p.second)
+			this->productions[p.first].push_back(value);
+	}
 }
 
 void Grammar::displayTerminals()
 {
-	cout << "Terminals: ";
 	for (string terminal : this->terminals)
 	{
 		cout << terminal << " ";
@@ -111,7 +101,6 @@ void Grammar::displayTerminals()
 
 void Grammar::displayNonTerminals()
 {
-	cout << "Nonterminals: ";
 	for (string nonterminal : this->nonterminals)
 	{
 		cout << nonterminal << " ";
@@ -122,16 +111,18 @@ void Grammar::displayNonTerminals()
 
 void Grammar::displayProductions()
 {
-	cout << "Productions:\n";
-	for (auto it = this->productions.begin(); it != this->productions.end(); ++it)
+	for (auto [key, production] : this->productions)
 	{
-		cout << it->first << " = ";
+		cout << key << " = ";
 		bool first = true;
-		for (const string& prod : it->second)
+		for (auto prod : production)
 		{
-			if (!first) cout << " | ";
+			if (!first) cout << "| ";
 			else first = false;
-			cout << prod;
+			for (auto atom : prod)
+			{
+				cout << atom << " ";
+			}
 		}
 		cout << '\n';
 	}
@@ -139,20 +130,18 @@ void Grammar::displayProductions()
 
 void  Grammar::displayProduction(string nonterminal)
 {
-	cout << "Productions:\n";
-	auto it = this->productions.find(nonterminal);
+	auto [key, production] = *this->productions.find(nonterminal);
 
-	if (it != this->productions.end()) {
-		cout << it->first << " = ";
-		bool first = true;
-		for (const string& prod : it->second) {
-			if (!first) cout << " | ";
-			else first = false;
-			cout << prod;
+	cout << key << " = ";
+	bool first = true;
+	for (auto prod : production)
+	{
+		if (!first) cout << "| ";
+		else first = false;
+		for (auto atom : prod)
+		{
+			cout << atom << " ";
 		}
-		cout << '\n';
 	}
-	else {
-		cout << "Nonterminal not found.\n";
-	}
+	cout << '\n';
 }
