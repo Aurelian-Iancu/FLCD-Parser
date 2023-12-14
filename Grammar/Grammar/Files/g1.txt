@@ -1,4 +1,4 @@
-S A B
+SS S A B
 a b
 SS
 SS = S
