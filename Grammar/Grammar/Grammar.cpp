@@ -1,14 +1,5 @@
 #include "Grammar.h"
 
-#include <fstream>
-#include <sstream>
-#include <iostream>
-
-
-#include <algorithm> 
-#include <cctype>
-#include <locale>
-
 // trim from start (in place)
 static inline void ltrim(string& s) {
 	s.erase(s.begin(), find_if(s.begin(), s.end(), [](unsigned char ch) {

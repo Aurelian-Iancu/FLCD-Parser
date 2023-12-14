@@ -15,7 +15,6 @@ public:
 
 	Item(string lhs, vector<string> rhs, int dotPosition) : lhs{ lhs }, rhs{ rhs }, dotPosition{ dotPosition } {}
 
-	bool equals(const Item& otherItem) const;
 	bool operator==(const Item& otherItem) const;
 
 	string toString();

@@ -5,6 +5,12 @@
 #include <vector>
 #include <string>
 #include <utility>
+#include <fstream>
+#include <sstream>
+#include <iostream>
+#include <algorithm> 
+#include <cctype>
+#include <locale>
 
 using namespace std;
 

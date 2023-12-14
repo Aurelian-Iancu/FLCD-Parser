@@ -1,6 +1,6 @@
 #include "State.h"
 
-bool State::operator==(const State& otherState)
+bool State::operator==(const State& otherState) const
 {
 	if (this->closure.size() != otherState.closure.size()) return false;
 	for (auto item : this->closure)
@@ -8,7 +8,7 @@ bool State::operator==(const State& otherState)
 		bool found = false;
 		for (Item otherItem : otherState.closure)
 		{
-			if (item.equals(otherItem)) found = true;
+			if (item == otherItem) found = true;
 		}
 		if (!found) return false;
 	}
@@ -24,7 +24,7 @@ bool State::hasSameClosure(const vector<Item>& otherClosure)
 	{
 		bool foundItem = false;
 		for (Item otherItem : otherClosure)
-			if (item.equals(otherItem)) 
+			if (item == otherItem) 
 			{ 
 				foundItem = true; 
 				break; 
@@ -45,7 +45,48 @@ vector<string> State::getAtomAfterDot()
 	return atoms;
 }
 
-string State::toString(int index)
+bool State::allDotsNotAtEnd()
+{
+	for (Item i : this->closure)
+		if (i.rhs.size() == i.dotPosition) return false;
+	return true;
+}
+
+bool State::allDotsAtEnd()
+{
+	for (Item i : this->closure)
+		if (i.rhs.size() > i.dotPosition) return false;
+	return true;
+}
+
+Action State::getAction(string startingAtom)
+{
+	if (this->closure.size() == 1
+		&& this->closure[0].rhs.size() == this->closure[0].dotPosition
+		&& this->closure[0].lhs == startingAtom)
+	{
+		return Action::Accept;
+	}
+	else if (this->closure.size() == 1
+		&& this->closure[0].rhs.size() == this->closure[0].dotPosition)
+	{
+		return Action::Reduce;
+	}
+	else if (this->closure.size() > 0
+		&& allDotsNotAtEnd()) {
+		return Action::Shift;
+	}
+	else if (this->closure.size() > 1 && this->allDotsAtEnd())
+	{
+		return Action::ReduceReduceConflict;
+	}
+	else
+	{
+		return Action::ShiftReduceConflict;
+	}
+}
+
+string State::toString(int index) const
 {
 	string stateString = "s" + to_string(index) + " = closure({ ";
 	for (int i = 0; i < this->closureItems.size(); ++i)

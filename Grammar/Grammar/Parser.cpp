@@ -27,7 +27,7 @@ State Parser::closure(vector<Item> items)
                     Item newItem{ afterDot, production, 0 };
                     bool isItemInCurrentClosure = false;
                     for (Item itemInCurrentClosure : currentClosure)
-                        if (itemInCurrentClosure.equals(newItem))
+                        if (itemInCurrentClosure == newItem)
                         {
                             isItemInCurrentClosure = true;
                             break;
@@ -85,26 +85,153 @@ void Parser::createCanonicalCollection()
         for (string atom : atomsAfterDot)
         {
             State newState = this->goTo(state, atom);
+            // check that state is not already existent and add it
             if (find(this->cannonicalCollection.begin(), this->cannonicalCollection.end(), newState)
                 == this->cannonicalCollection.end())
                 this->cannonicalCollection.push_back(newState);
-
-            this->connections.push_back(Connection(state, newState, atom));
+            
+            // create connection between current state and next state through atom
+            this->connections[this->getStateIndex(state)].push_back({ atom, this->getStateIndex(newState) });
         }
         ++index;
     }
 }
 
-vector<Connection> Parser::getConnectionsOfState(State state)
+void Parser::createParsingTable()
 {
-    vector<Connection> connectionsOfState;
+    // parsing table has as many rows as states in cannonical collection
+    this->parsingTable = vector<TableRow>(this->cannonicalCollection.size());
+    string startingAtom = this->grammar.start;
 
-    for (Connection connection : this->connections) {
-        if (connection.getStartingState() == state) {
-            connectionsOfState.push_back(connection);
+    // go over all states in the cannonical collection
+    for (int i = 0; i < this->cannonicalCollection.size(); ++i)
+    {
+        // currenct state
+        State s = this->cannonicalCollection[i];
+
+        // action of the current state
+        Action action = s.getAction(startingAtom);
+
+        // all connections of the current state
+        auto stateConnections = this->connections[i];
+        if (stateConnections.size() == 0)
+        {
+            if (action == Action::Accept)
+            {
+                // mark the state as accept in the parsing table
+                this->parsingTable[i] = { Action::Accept, unordered_map<string, int> {} };
+            }
+            else if (action == Action::Reduce)
+            {
+                // add the production corresponding to the reduce action
+                this->parsingTable[i] = { Action::Reduce, s.closure[0] };
+            }
+        }
+        else if (action == Action::Shift)
+        {
+            unordered_map<string, int> gotos;
+            // add all the connections of the current state in the table (only on shift action)
+            for (auto [atom, nextState] : stateConnections)
+                gotos[atom] = nextState;
+
+            this->parsingTable[i] = { action, gotos };
+        }
+        else if (action == Action::ShiftReduceConflict)
+        {
+            throw string("Shift-reduce conflict for state: " + s.toString(i));
+        }
+        else if (action == Action::ReduceReduceConflict)
+        {
+            throw string("Reduce-reduce conflict for state: " + s.toString(i));
         }
     }
-    return connectionsOfState;
+}
+
+vector<Item> Parser::parse(vector<string> atoms)
+{
+    string endSign = "$";
+
+    // preparing stacks
+    stack<string> work;
+    stack<string> input;
+    list<Item> output;
+
+    // adding endSign and starting state in work stack
+    work.push(endSign);
+    work.push("0");
+
+    // adding endSign and all the atoms in reverse order(so first atom is on top) in input stack
+    input.push(endSign);
+    for (auto it = atoms.rbegin(); it != atoms.rend(); ++it) input.push(*it);
+
+    // we are done when accept action is reached (finished == true)
+    bool finished = false;
+    while (!finished && (work.top() != endSign || input.top() != endSign))
+    {
+        // get top state, which is a string that represents the index of the state
+        int topState = stoi(work.top());
+
+        // accept case, if reached we are done
+        if (this->parsingTable[topState].action == Action::Accept)
+        {
+            finished = true;
+        }
+        // shift case
+        else if (this->parsingTable[topState].action == Action::Shift)
+        {
+            string atom = input.top();
+            input.pop();
+
+            // push the top of input stack
+            work.push(atom);
+
+            // check that the parsing table at the current state has something at the atom(top of input stack) 
+            if (this->parsingTable[topState].gotos.find(atom) == this->parsingTable[topState].gotos.end())
+                throw string("Invalid goto for state " + to_string(topState) + " through atom " + atom + ".");
+
+            // push the state connected by the atom
+            work.push(to_string(this->parsingTable[topState].gotos[atom]));
+        }
+        // reduce case
+        else if (this->parsingTable[topState].action == Action::Reduce)
+        {
+            // add the production corresponding to the reduce action in the output
+            output.push_front(this->parsingTable[topState].production);
+            
+            // pop the work stack 2 * prodLength times (the size of the rhs of the corresponding reduce production)
+            int prodLength = this->parsingTable[topState].production.rhs.size();
+            while (prodLength)
+            {
+                // two pops because we need 2 * prodLength
+                // two pops because atom is always followed by a state in work stack
+                work.pop();
+                work.pop();
+                --prodLength;
+            }
+
+            int currentTopState = stoi(work.top());
+            string newTopState = this->parsingTable[topState].production.lhs;
+
+            // push lhs of the production corresponding to reduce state
+            work.push(newTopState);
+
+            // check that the parsing table at the current state has something at the newTopState(top of input stack) 
+            if (this->parsingTable[currentTopState].gotos.find(newTopState) == this->parsingTable[currentTopState].gotos.end())
+                throw string("Invalid goto for state " + to_string(topState) + " through atom " + newTopState + ".");
+
+            // push the state connected by newTopState(= which is not actually a state, it is an atom)
+            work.push(to_string(this->parsingTable[currentTopState].gotos[newTopState]));
+        }
+    }
+
+    return vector<Item>(output.begin(), output.end());
+}
+
+int Parser::getStateIndex(const State& state) const
+{
+    for (int i = 0; i < this->cannonicalCollection.size(); ++i)
+        if (this->cannonicalCollection[i] == state) return i;
+    return -1;
 }
 
 string Parser::toString()
@@ -117,3 +244,43 @@ string Parser::toString()
 
     return cannonicalString;
 }
+
+
+// logic for shift reduce ???
+/*else if (this->parsingTable[topState].action == Action::ShiftReduceConflict)
+{
+    string atom = input.top();
+    input.pop();
+
+    if (atom == endSign
+        || this->parsingTable[topState].gotos.find(atom) == this->parsingTable[topState].gotos.end())
+    {
+        output.push_front(this->parsingTable[topState].production);
+
+        int prodLength = this->parsingTable[topState].production.rhs.size();
+        while (prodLength)
+        {
+            work.pop();
+            work.pop();
+            --prodLength;
+        }
+
+        int currentTopState = stoi(work.top());
+        string newTopState = this->parsingTable[topState].production.lhs;
+        work.push(newTopState);
+        work.push(to_string(this->parsingTable[currentTopState].gotos[newTopState]));
+    }
+    else
+    {
+        string atom = input.top();
+        work.push(atom);
+
+        if (this->parsingTable[topState].gotos.find(atom) == this->parsingTable[topState].gotos.end())
+        {
+            string msg = "Invalid goto for state " + to_string(topState) + " through atom " + atom + ".";
+            throw msg;
+        }
+
+        work.push(to_string(this->parsingTable[topState].gotos[atom]));
+    }
+}*/
