@@ -77,7 +77,8 @@ void testParser()
 {
 	try {
 		// lr(0)
-		Grammar g{ "C:\\Users\\andre\\Desktop\\folders\\facultate\\sem_5\\compilers\\week8\\g3.txt" };
+		//Grammar g{ "C:\\Users\\andre\\Desktop\\folders\\facultate\\sem_5\\compilers\\week8\\g3.txt" };
+		Grammar g{ "C:\\Users\\Aurelian\\Documents\\GitHub\\Personal\\FLCD-Parser\\Grammar\\Grammar\\Files\\g3.txt" };
 		Parser p(g);
 		p.createCanonicalCollection();
 
