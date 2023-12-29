@@ -185,9 +185,17 @@ vector<Item> Parser::parse(vector<string> atoms)
             // push the top of input stack
             work.push(atom);
 
+            // special case when atom is equal, because of the way the grammars are defined
+            if (atom == "=") atom = "EQUAL";
+
             // check that the parsing table at the current state has something at the atom(top of input stack) 
             if (this->parsingTable[topState].gotos.find(atom) == this->parsingTable[topState].gotos.end())
-                throw string("Invalid goto for state " + to_string(topState) + " through atom " + atom + ".");
+            {
+                if (this->parsingTable[topState].gotos.find("EPSILON") == this->parsingTable[topState].gotos.end())
+                    throw string("Invalid goto for state " + to_string(topState) + " through atom " + atom + ".");
+                else
+                    atom = "EPSILON";
+            }
 
             // push the state connected by the atom
             work.push(to_string(this->parsingTable[topState].gotos[atom]));
@@ -244,43 +252,3 @@ string Parser::toString()
 
     return cannonicalString;
 }
-
-
-// logic for shift reduce ???
-/*else if (this->parsingTable[topState].action == Action::ShiftReduceConflict)
-{
-    string atom = input.top();
-    input.pop();
-
-    if (atom == endSign
-        || this->parsingTable[topState].gotos.find(atom) == this->parsingTable[topState].gotos.end())
-    {
-        output.push_front(this->parsingTable[topState].production);
-
-        int prodLength = this->parsingTable[topState].production.rhs.size();
-        while (prodLength)
-        {
-            work.pop();
-            work.pop();
-            --prodLength;
-        }
-
-        int currentTopState = stoi(work.top());
-        string newTopState = this->parsingTable[topState].production.lhs;
-        work.push(newTopState);
-        work.push(to_string(this->parsingTable[currentTopState].gotos[newTopState]));
-    }
-    else
-    {
-        string atom = input.top();
-        work.push(atom);
-
-        if (this->parsingTable[topState].gotos.find(atom) == this->parsingTable[topState].gotos.end())
-        {
-            string msg = "Invalid goto for state " + to_string(topState) + " through atom " + atom + ".";
-            throw msg;
-        }
-
-        work.push(to_string(this->parsingTable[topState].gotos[atom]));
-    }
-}*/

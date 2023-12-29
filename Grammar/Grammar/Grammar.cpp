@@ -49,7 +49,14 @@ pair<string, vector<vector<string>>> Grammar::parseProduction(string production)
 	{
 		trim(prod);
 		vector<string> atoms = this->parseTerminalsAndNonTerminals(prod);
-		// TODO: check atoms to be either a non or a terminal
+
+		for_each(atoms.begin(), atoms.end(), [this](string atom) {
+			if (this->nonterminals.find(atom) == this->nonterminals.end()
+				&& this->terminals.find(atom) == this->terminals.end())
+			{
+				throw invalid_argument("Atom '" + atom + "' is not a terminal or a non-terminal.");
+			}
+		});
 		productions.push_back(atoms);
 	}
 

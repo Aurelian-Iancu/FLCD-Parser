@@ -5,6 +5,7 @@ void ParserOutput::createParsingTree()
 	int position = 0;
 	// add first node, which has as starting atom the original start, not the enriched one
 	this->parsingTree.push_back({ position++, this->grammar.productions[this->grammar.start][0][0], -1, -1 });
+	//this->parsingTree.push_back({ position++, this->output[0].lhs, -1, -1});
 
 	// go over all the items in the output
 	for (Item item : this->output)
@@ -29,7 +30,8 @@ void ParserOutput::createParsingTree()
 						this->parsingTree.push_back({ position++, atom, node.id, -1 });
 						first = false;
 					}
-					else {
+					else 
+					{
 						// set sibling when it is not the first one in production
 						this->parsingTree[position - 1].sibling = position;
 

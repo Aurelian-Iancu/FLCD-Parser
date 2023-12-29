@@ -8,6 +8,8 @@
 
 #include <iostream>
 
+using namespace std;
+
 void testScanner()
 {
 	FiniteAutomata faIntConst{ "C:\\Users\\andre\\Desktop\\folders\\facultate\\sem_5\\compilers\\week6\\fa_int_const.in" };
@@ -24,8 +26,9 @@ void testScanner()
 	try
 	{
 		scanner.scan("C:\\Users\\andre\\Desktop\\folders\\facultate\\sem_5\\compilers\\week1\\p1.ili");
+		vector<string> sequence = scanner.pifToTokenSequence();
 		//scanner.displayPif();
-		scanner.dumpToFile();
+		//scanner.dumpToFile();
 	}
 	catch (runtime_error e)
 	{
@@ -66,11 +69,21 @@ void testFA()
 
 void testGrammar() 
 {
-	Grammar g{ "C:\\Users\\andre\\Desktop\\folders\\facultate\\sem_5\\compilers\\week8\\g2.txt" };
+	try {
+		Grammar g{ "C:\\Users\\andre\\Desktop\\folders\\facultate\\sem_5\\compilers\\week8\\g2.txt" };
 
-	g.displayNonTerminals();
-	g.displayTerminals();
-	g.displayProduction("constant");
+		g.displayNonTerminals();
+		g.displayTerminals();
+		g.displayProduction("enriched_symbol");
+	}
+	catch (const invalid_argument& e)
+	{
+		cout << e.what() << endl;
+	}
+	catch (const exception& e)
+	{
+		cout << e.what() << endl;
+	}
 }
 
 void testParser()
@@ -135,12 +148,101 @@ void testParser()
 
 }
 
+void runG1()
+{
+	try
+	{
+		Grammar g{ ".\\files\\g1.txt" };
+		Parser p(g);
+
+		vector<string> sequence = { "a", "b", "b", "c" };
+
+		p.createCanonicalCollection();
+		p.createParsingTable();
+
+		vector<Item> output = p.parse(sequence);
+
+		ParserOutput po{ g, output };
+
+		po.createParsingTree();
+		po.display();
+
+		po.saveToFile("out1.txt");
+	}
+	catch (const invalid_argument& e)
+	{
+		cout << e.what() << endl;
+	}
+	catch (const exception& e)
+	{
+		cout << e.what() << endl;
+	}
+	catch (const string& e)
+	{
+		cout << e << endl;
+	}
+}
+
+void runG2()
+{
+	try
+	{
+		FiniteAutomata faIntConst{ ".\\files\\fa_int_const.in" };
+		FiniteAutomata faIdentifier{ ".\\files\\fa_identifier.in" };
+
+		Scanner scanner(
+			".\\files\\token.in",
+			".\\files\\separator.in",
+			".\\files\\operator.in",
+			".\\files\\reservedWord.in",
+			faIntConst,
+			faIdentifier
+		);
+
+		Grammar g{ ".\\files\\g2.txt" };
+
+		Parser p(g);
+
+		scanner.scan(".\\files\\p1.ili");
+		//scanner.displayPif();
+		vector<string> sequence = scanner.pifToTokenSequence();
+
+		p.createCanonicalCollection();
+		p.createParsingTable();
+
+		vector<Item> output = p.parse(sequence);
+		//for (Item i : output) cout << i.toString() << endl;
+		//cout << endl;
+
+		ParserOutput po{ g, output };
+
+		po.createParsingTree();
+		po.display();
+
+		po.saveToFile("out2.txt");
+	}
+	catch (const invalid_argument& e)
+	{
+		cout << e.what() << endl;
+	}
+	catch (const exception& e)
+	{
+		cout << e.what() << endl;
+	}
+	catch (const string& e)
+	{
+		cout << e << endl;
+	}
+}
+
 int main() 
 {
 	//testScanner();
 	//testFA();
 	//testGrammar();
-	testParser();
+	//testParser();
+	runG1();
+	//runG2();
 
 	return 0;
 }

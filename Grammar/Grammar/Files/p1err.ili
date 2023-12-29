@@ -1,0 +1,14 @@
+int 1n;
+
+print("Enter a numbers: ");
+input(n);
+
+int i = $2;
+while ( i < n ) {
+    if (n % i == 0) {
+        print("It is not prime.");
+        return;
+    }
+}
+
+print("Is prime!");

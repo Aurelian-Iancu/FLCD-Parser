@@ -46,4 +46,6 @@ public:
 	void scan(string source);
 	void displayPif();
 	void dumpToFile();
+
+	vector<string> pifToTokenSequence();
 };

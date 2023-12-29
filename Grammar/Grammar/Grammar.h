@@ -22,15 +22,10 @@ public:
 	string start;
 	unordered_map<string, vector<vector<string>>> productions;
 	unordered_map<string, string> specialTerminals{
-		{ "SPACE", " " }, 
+		{ "EPSILON", "" }, 
 		{ "EQUAL", "=" }, 
-		{ "OPEN_CURLY", "{" }, 
-		{ "CLOSE_CURLY", "}" }, 
-		{ "OPEN_ROUNDED", "(" }, 
-		{ "CLOSE_ROUNDED", ")" }, 
-		{ "OPEN_SQUARE", "[" }, 
-		{ "CLOSE_SQUARE", "]" }, 
-		{ "ANY_CHARACTER", "" },
+		{ "IDENTIFIER", "" },
+		{ "CONSTANT", "" },
 	};
 
 	vector<string> parseTerminalsAndNonTerminals(string input);

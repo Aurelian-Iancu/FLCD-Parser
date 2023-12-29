@@ -86,7 +86,7 @@ void Scanner::classifyAtom(string atom, int lineNr)
 		if (!found.first) code = this->symbolTable.insert(atom);
 		else code = found.second;
 
-		pif.push_back({ this->atomCodes["identifier"], code });
+		pif.push_back({ this->atomCodes["IDENTIFIER"], code });
 	}
 	else if (this->isConstant(atom))
 	{
@@ -95,7 +95,7 @@ void Scanner::classifyAtom(string atom, int lineNr)
 		if (!found.first) code = this->symbolTable.insert(atom);
 		else code = found.second;
 
-		pif.push_back({ this->atomCodes["constant"], code });
+		pif.push_back({ this->atomCodes["CONSTANT"], code });
 	}
 	else if (!atom.empty())
 	{
@@ -199,4 +199,13 @@ void Scanner::dumpToFile()
 	{
 		g << atomCode << " " << index << endl;
 	}
+}
+
+vector<string> Scanner::pifToTokenSequence()
+{
+	vector<string> result;
+	for (auto [atomCode, index] : this->pif)
+		result.push_back(this->codesToAtom[atomCode]);
+
+	return result;
 }
