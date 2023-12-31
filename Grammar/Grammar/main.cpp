@@ -153,7 +153,8 @@ void runG1()
 {
 	try
 	{
-		Grammar g{ ".\\files\\g1.txt" };
+		Grammar g{ "C:\\Users\\Aurelian\\Documents\\GitHub\\Personal\\FLCD-Parser\\Grammar\\Grammar\\Files\\g1.txt" };
+		//Grammar g{ ".\\files\\g1.txt" };
 		Parser p(g);
 
 		vector<string> sequence = { "a", "b", "b", "c" };
